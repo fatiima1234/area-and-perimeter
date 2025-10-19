@@ -2,47 +2,77 @@
 // Author: Fatemeh HadavandMirzaee
 // Description: A basic code calculating area and perimeter of a rectangle and a circle.
 // Demonstrates encapsulation and input validation
-// Date: 16 October 2025
+// Version 1.1
+// Changes:
+//   - Added abstract Shape base class for OOP and polymorphism
+//   - Added input validation with exceptions and try-catch
+//   - Added clearBadInput() for non-numeric input handling
+//   - Replaced hardcoded shapes with interactive user menu
+//   - Improved const correctness and output formatting
+// Date: 18 October 2025
 
 #include <iostream>
+#include <limits>
 
 constexpr double pi = 3.14159265;
 
-class Rectangle{
+void clearBadInput() {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+}
+
+class Shape {
+
 public:
-    Rectangle(double width, double length){
-        setWidth(width);
-        setLength(length);
-    }
+    virtual void getInfo() const = 0;
+    virtual double getArea() const = 0;
+    virtual void printArea() const = 0;
+    virtual double getPerimeter() const = 0;
+    virtual void printPerimeter() const = 0;
+    virtual ~Shape() = default;
+};
 
-    double getWidth(){
-        return width_;
-    }
+class Rectangle : public Shape {
 
-    void setWidth(double width){
-        if (width <= 0 ) {
-            throw std::invalid_argument("width error \n");
+public:
+    Rectangle(double width, double length) {
+        if (width <= 0 && length <= 0) {
+            throw std::invalid_argument("Width and length error\n");
+        } else if (width <= 0) {
+            throw std::invalid_argument("Width error\n");
+        } else if (length <= 0) {
+            throw std::invalid_argument("Length error\n");
         }
-            width_ = width;
-    }
-
-    double getLength(){
-        return length_;
-    }
-
-    void setLength(double length){
-        if (length <= 0 ){
-            throw std::invalid_argument("length error \n");
-        }
+        width_ = width; 
         length_ = length;
     }
 
-    double getArea(){
-        return width_*length_;
+    double getWidth() const {
+        return width_;
     }
 
-    double getPerimeter(){
-        return 2*(length_ + width_);
+    double getLength() const {
+        return length_;
+    }
+
+    void getInfo() const {
+        std::cout << "\nRectangle with width " << width_ << " and length " << length_ << " units.\n";
+    }
+
+    double getArea() const {
+        return width_ * length_;
+    }
+
+    void printArea() const {
+        std::cout << "Area: " << getArea() << " units^2\n";
+    }
+
+    double getPerimeter() const {
+        return 2 * (width_ + length_);
+    }
+
+    void printPerimeter() const {
+        std::cout << "Perimeter: " << getPerimeter() << " units\n\n";
     }
 
 private:
@@ -50,29 +80,37 @@ private:
     double length_;
 };
 
-class Circle{
+class Circle : public Shape {
 public:
-    Circle(double radius){
-        setRadius(radius);
+    Circle(double radius) {
+        if (radius <= 0){
+            throw std::invalid_argument("Radius error\n");
+        }
+        radius_ = radius;
     }
 
-    double getRadius(){
+    double getRadius() const {
         return radius_;
     }
 
-    void setRadius(double radius){
-        if ( radius <=0 ){
-            throw std::invalid_argument("radius error \n");
-        }
-        radius_ = radius;
-    }  
-
-    double getArea(){
-        return (pi * radius_ * radius_);
+    void getInfo() const {
+        std::cout << "\nCircle with radius of: " << radius_ << " units.\n";
     }
 
-    double getPerimeter(){
-        return (2 * pi * radius_);
+    double getArea() const {
+        return pi * radius_ * radius_;
+    }
+
+    void printArea() const {
+        std::cout << "Area: " << getArea() << " units^2\n";
+    }
+
+    double getPerimeter() const {
+        return 2 * pi * radius_;
+    }
+    
+     void printPerimeter() const {
+        std::cout << "Perimeter: " << getPerimeter() << " units\n\n";
     }
 
 private:
@@ -80,17 +118,67 @@ private:
 };
 
 int main() {
+    while(true) {
+        std::cout << "Choose a shape: 1 for rectangle, 2 for circle, or 10 to exit: ";
+        int choice;
+        if (!(std::cin >> choice)) {
+            clearBadInput();
+            std::cout << "Invalid input. ";
+            continue;
+        } else {
+            if (choice == 1) {
+                double width, length;
+                while(true) {
+                    std::cout << "Enter width and length (with space between them): ";
+                    if (!(std::cin >> width >> length)) {
+                        clearBadInput();
+                        std::cout << "Invalid input. Try again.\n";
+                        continue;
+                    } 
+                    try {
+                        Shape* shape = new Rectangle(width, length);
+                        shape->getInfo();
+                        shape->printArea();
+                        shape->printPerimeter();
+                        delete shape;
+                        break;   
+                    } catch(const std::invalid_argument& ex) {
+                        std::cout << ex.what();
+                    }
+                    continue;
+                }
 
-    Rectangle rect(4,5);
-    std::cout << "Rectangle:\n";
-    std::cout << "Area: " << rect.getArea() << " units^2 \n";
-    std::cout << "Perimeter: " << rect.getPerimeter() << " units  \n\n";
+            } else if (choice == 2){
+                double radius;
+                while(true){
+                    std::cout << "Enter the radius: ";
+                    if (!(std::cin >> radius)) {
+                        clearBadInput();
+                        std::cout << "Invalid input. Try again.\n";
+                        continue;
+                    } 
+                    try {
+                        Shape* shape = new Circle(radius);
+                        shape->getInfo();
+                        shape->printArea();
+                        shape->printPerimeter();
+                        delete shape;
+                        break;
+                    } catch(const std::invalid_argument& ex) {
+                        std::cout << ex.what();
+                        continue;
+                    }
+                }      
 
+            } else if(choice == 10) {
+                std::cout << "Exiting the program. . .\n";
+                break;
 
-    Circle circ(2);
-    std::cout << "Circle:\n";
-    std::cout << "Area: " << circ.getArea() << " units^2 \n";
-    std::cout << "Perimeter: " << circ.getPerimeter() << " units  \n\n";
+            } else {
+                std::cout << "Invalid choice. " ;
+            }
+        }
+    }
 
     return 0;
 }
